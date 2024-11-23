@@ -18,31 +18,56 @@ async function getRegionMap() {
     !regionMap.keys().next().value ||
     regionMapUpdated < Date.now() - 3600 * 1000
   ) {
-    // Fetch regions from Medusa. We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
-    const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
-      headers: {
-        "x-publishable-api-key": PUBLISHABLE_API_KEY!,
-      },
-      next: {
-        revalidate: 3600,
-        tags: ["regions"],
-      },
-    }).then((res) => res.json())
+    try {
+      console.log("Fetching regions from:", `${BACKEND_URL}/store/regions`);
+      
+      const response = await fetch(`${BACKEND_URL}/store/regions`, {
+        headers: {
+          "x-publishable-api-key": PUBLISHABLE_API_KEY!,
+        },
+        next: {
+          revalidate: 3600,
+          tags: ["regions"],
+        },
+      });
 
-    console.log(regions)
+      if (!response.ok) {
+        console.error("Failed to fetch regions:", response.status, response.statusText);
+        const text = await response.text();
+        console.error("Response body:", text);
+        throw new Error(`Failed to fetch regions: ${response.status}`);
+      }
 
-    if (!regions?.length) {
-      notFound()
-    }
+      const data = await response.json();
+      console.log("Raw response data:", data);
 
-    // Create a map of country codes to regions.
-    regions.forEach((region: HttpTypes.StoreRegion) => {
-      region.countries?.forEach((c) => {
-        regionMapCache.regionMap.set(c.iso_2 ?? "", region)
+      if (!data.regions || !Array.isArray(data.regions)) {
+        console.error("Invalid regions data:", data);
+        throw new Error("Invalid regions data structure");
+      }
+
+      const { regions } = data;
+
+      if (!regions?.length) {
+        console.error("No regions found");
+        notFound();
+      }
+
+      // Create a map of country codes to regions.
+      regions.forEach((region: HttpTypes.StoreRegion) => {
+        region.countries?.forEach((c) => {
+          regionMapCache.regionMap.set(c.iso_2 ?? "", region)
+        })
       })
-    })
 
-    regionMapCache.regionMapUpdated = Date.now()
+      regionMapCache.regionMapUpdated = Date.now()
+    } catch (error) {
+      console.error("Error fetching regions:", error);
+      if (process.env.NODE_ENV === "development") {
+        throw error;
+      }
+      return new Map();
+    }
   }
 
   return regionMapCache.regionMap
