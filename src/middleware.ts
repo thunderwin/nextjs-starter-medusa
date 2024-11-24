@@ -39,7 +39,7 @@ async function getRegionMap() {
       }
 
       const data = await response.json();
-      console.log("Raw response data:", data);
+      // console.log("Raw response data:", data);
 
       if (!data.regions || !Array.isArray(data.regions)) {
         console.error("Invalid regions data:", data);

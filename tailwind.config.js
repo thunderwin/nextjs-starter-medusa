@@ -60,14 +60,14 @@ module.exports = {
       },
       fontFamily: {
         sans: [
+          "sans-serif",
+          "Roboto",
+          "Segoe UI",
+          "Helvetica Neue",
           "Inter",
           "-apple-system",
           "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
           "Ubuntu",
-          "sans-serif",
         ],
       },
       keyframes: {
