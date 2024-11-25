@@ -24,7 +24,7 @@ const Hero = () => {
 
 
         <a
-          href="https://t.me/help_dev_wechat_bot"
+          href="https://t.me/tokwork_shop_maker_bot"
           target="_blank"
         >
           <Button >
